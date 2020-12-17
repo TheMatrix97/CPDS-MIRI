@@ -1,0 +1,42 @@
+I am the master (0) and going to distribute work to 0 additional workers ...
+Iterations        : 25000
+Resolution        : 256
+Algorithm         : 0 (Jacobi)
+Num. Heat sources : 2
+   1: (0.00, 0.00) 1.00 2.50 
+   2: (0.50, 1.00) 1.00 2.50 
+Time: 3.490 (11.463 GFlop => 3284.05 MFlop/s)
+Convergence to residual=0.000050: 15901 iterations
+Process 0 finished computing with residual value = 0.000050
+--------\n2cpu\n
+I am worker 1 and ready to receive work to do ...
+Process 1 finished computing 15901 iterations with residual value = 0.000050
+I am the master (0) and going to distribute work to 1 additional workers ...
+Iterations        : 25000
+Resolution        : 256
+Algorithm         : 0 (Jacobi)
+Num. Heat sources : 2
+   1: (0.00, 0.00) 1.00 2.50 
+   2: (0.50, 1.00) 1.00 2.50 
+Time: 1.874 (11.463 GFlop => 6115.37 MFlop/s)
+Convergence to residual=0.000050: 15901 iterations
+Process 0 finished computing with residual value = 0.000050
+--------\n4cpu\n
+I am worker 1 and ready to receive work to do ...
+Process 1 finished computing 15901 iterations with residual value = 0.000050
+I am worker 2 and ready to receive work to do ...
+Process 2 finished computing 15901 iterations with residual value = 0.000050
+I am worker 3 and ready to receive work to do ...
+Process 3 finished computing 15901 iterations with residual value = 0.000050
+I am the master (0) and going to distribute work to 3 additional workers ...
+Iterations        : 25000
+Resolution        : 256
+Algorithm         : 0 (Jacobi)
+Num. Heat sources : 2
+   1: (0.00, 0.00) 1.00 2.50 
+   2: (0.50, 1.00) 1.00 2.50 
+Time: 0.914 (11.463 GFlop => 12535.84 MFlop/s)
+Convergence to residual=0.000050: 15901 iterations
+Process 0 finished computing with residual value = 0.000050
+--------\n8cpu\n
+cannot request more than 4 cpus... 
