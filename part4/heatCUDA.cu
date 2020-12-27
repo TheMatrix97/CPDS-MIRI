@@ -37,6 +37,7 @@ int coarsen(float *uold, unsigned oldx, unsigned oldy ,
 
 
 __global__ void gpu_Heat (float *h, float *g, int N);
+__global__ void reduce0(float *u, float *uhelp, float *res ,int N);
 
 #define NB 8
 #define min(a,b) ( ((a) < (b)) ? (a) : (b) )
@@ -212,11 +213,15 @@ int main( int argc, char *argv[] ) {
     cudaEventRecord( start, 0 );
     cudaEventSynchronize( start );
 
-    float *dev_u, *dev_uhelp;
+    float *dev_u, *dev_uhelp, *dev_res;
+	
+	float *res = (float*)calloc(sizeof(float),Grid_Dim*Grid_Dim);
 
     //Allocation on GPU for matrices u and uhelp
 	cudaMalloc(&dev_u, np*np*sizeof(float));
 	cudaMalloc(&dev_uhelp, np*np*sizeof(float));
+	
+	cudaMalloc(&dev_res, Grid_Dim*Grid_Dim*sizeof(float)); // Allocate memory to Store results from reduction
 
     //Copy initial values in u and uhelp from host to GPU
     cudaMemcpy(dev_u, param.u, np*np*sizeof(float), cudaMemcpyHostToDevice);
@@ -228,16 +233,28 @@ int main( int argc, char *argv[] ) {
         cudaThreadSynchronize();                        // wait for all threads to complete
 
         //residual is computed on host, we need to get from GPU values computed in u and uhelp
-        cudaMemcpy(param.u, dev_u, np*np*sizeof(float), cudaMemcpyDeviceToHost);
-		cudaMemcpy(param.uhelp, dev_uhelp, np*np*sizeof(float), cudaMemcpyDeviceToHost);
+        //cudaMemcpy(param.u, dev_u, np*np*sizeof(float), cudaMemcpyDeviceToHost);
+		//cudaMemcpy(param.uhelp, dev_uhelp, np*np*sizeof(float), cudaMemcpyDeviceToHost);
+	
+		//residual = cpu_residual(param.u, param.uhelp, np, np);
+		reduce0<<<Grid,Block>>>(dev_u, dev_uhelp, dev_res, np); //run on Grid sm // Block threads
+		cudaThreadSynchronize();
 		
-	residual = cpu_residual(param.u, param.uhelp, np, np);
-
-	float * tmp = dev_u;
-	dev_u = dev_uhelp;
-	dev_uhelp = tmp;
+		float * tmp = dev_u;
+		dev_u = dev_uhelp;
+		dev_uhelp = tmp;
 
         iter++;
+		
+		//get result of reduction from device
+		cudaMemcpy(res, dev_res, Grid_Dim*Grid_Dim*sizeof(float), cudaMemcpyDeviceToHost);
+		int residual = 0;
+		//add residuals output for each block
+		for(int i = 0; i < Grid_Dim*Grid_Dim; i++){
+			//fprintf(stdout, "Res -> %f", res[i]);
+			residual += res[i];
+		}
+		printf("residual -> %f", residual);
 
         // solution good enough ?
         if (residual < 0.00005) break;
