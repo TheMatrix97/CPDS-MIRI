@@ -117,23 +117,41 @@ int main( int argc, char *argv[] )
 		    for (int i=0; i<filas+2; i++)
     		        for (int j=0; j<np; j++)
 	    		    param.u[ i*np+j ] = param.uhelp[ i*np+j ];
-		    break;
+				
+			//Share boundaries to adjacent procs (if more than one proc assigned)
+			if(numprocs > 1){	
+				MPI_Send(&param.u[filas*np], np, MPI_DOUBLE, 1, 0, MPI_COMM_WORLD);
+				MPI_Recv(&param.u[(filas+1)*np], np, MPI_DOUBLE, 1, 0, MPI_COMM_WORLD, &status);
+		    }
+			break;
 	    case 1: // RED-BLACK
 		    residual = relax_redblack(param.u, np, np);
 		    break;
 	    case 2: // GAUSS
-		    residual = relax_gauss(param.u, np, np);
+		    residual = relax_gauss(param.u, filas+2, np);
+			//Share boundaries to adjacent procs (if more than one proc assigned)
+			if(numprocs > 1){	
+				MPI_Send(&param.u[filas*np], np, MPI_DOUBLE, 1, 0, MPI_COMM_WORLD);
+				MPI_Recv(&param.u[(filas+1)*np], np, MPI_DOUBLE, 1, 0, MPI_COMM_WORLD, &status);
+		    }
 		    break;
 	    }
 
         iter++;
-
+		double temp_residual = residual;
+		//with all reduce all processes get the correct residual, finishing at the same time
+		MPI_Allreduce(&temp_residual, &residual, 1, MPI_DOUBLE, MPI_SUM, MPI_COMM_WORLD); 
         // solution good enough ?
         if (residual < 0.00005) break;
 
         // max. iteration reached ? (no limit with maxiter=0)
         if (param.maxiter>0 && iter>=param.maxiter) break;
     }
+	
+	//Get Work from slaves
+	for(int nproc = 1; nproc < numprocs; nproc++){ //Get result from workers
+		MPI_Recv(&param.u[nproc*filas*np], (filas+2)*(np), MPI_DOUBLE, nproc, 1, MPI_COMM_WORLD, &status); //get processed info from thread assigned
+	}
 
     // Flop count after iter iterations
     flop = iter * 11.0 * param.resolution * param.resolution;
@@ -205,23 +223,50 @@ int main( int argc, char *argv[] )
 		    for (int i=0; i<rows+2; i++)
     		        for (int j=0; j<np; j++)
 	    		    u[ i*np+j ] = uhelp[ i*np+j ];
+				
+			//Share boundaries to adjacent procs, send/receive upper bound
+			MPI_Send(&u[np], np, MPI_DOUBLE, myid-1, 0, MPI_COMM_WORLD);
+			MPI_Recv(&u[0], np, MPI_DOUBLE, myid-1, 0, MPI_COMM_WORLD, &status);
+			
+			if(myid != numprocs-1){ //intermediate block, send/receive also lower bound
+				MPI_Send(&u[rows*np], np, MPI_DOUBLE, myid+1, 0, MPI_COMM_WORLD);
+				MPI_Recv(&u[(rows+1)*np], np, MPI_DOUBLE, myid+1, 0, MPI_COMM_WORLD, &status);
+			}
+			
 		    break;
 	    case 1: // RED-BLACK
 		    residual = relax_redblack(u, np, np);
 		    break;
 	    case 2: // GAUSS
-		    residual = relax_gauss(u, np, np);
+			printf("Iter");
+		    residual = relax_gauss(u, rows+2, np);
+			printf("Residual -> %f", residual);
+			
+			/*
+			//Share boundaries to adjacent procs, send/receive upper bound
+			MPI_Send(&u[np], np, MPI_DOUBLE, myid-1, 0, MPI_COMM_WORLD);
+			MPI_Recv(&u[0], np, MPI_DOUBLE, myid-1, 0, MPI_COMM_WORLD, &status);
+			
+			if(myid != numprocs-1){ //intermediate block, send/receive also lower bound
+				MPI_Send(&u[rows*np], np, MPI_DOUBLE, myid+1, 0, MPI_COMM_WORLD);
+				MPI_Recv(&u[(rows+1)*np], np, MPI_DOUBLE, myid+1, 0, MPI_COMM_WORLD, &status);
+			}*/
 		    break;
 	    }
 
         iter++;
-
-        // solution good enough ?
+		
+		double temp_residual = residual;
+		//with all reduce all processes get the correct residual, finishing at the same time
+		MPI_Allreduce(&temp_residual, &residual, 1, MPI_DOUBLE, MPI_SUM, MPI_COMM_WORLD);
+        
+		// solution good enough ?
         if (residual < 0.00005) break;
 
         // max. iteration reached ? (no limit with maxiter=0)
         if (maxiter>0 && iter>=maxiter) break;
     }
+	MPI_Send(&u[0], (rows+2)*(np), MPI_DOUBLE, 0, 1, MPI_COMM_WORLD);
 
     if( u ) free(u); if( uhelp ) free(uhelp);
 
