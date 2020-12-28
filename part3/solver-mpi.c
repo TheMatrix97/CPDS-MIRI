@@ -99,7 +99,7 @@ double relax_gauss (double *u, unsigned sizex, unsigned sizey)
         for (int jj=0; jj<nby; jj++){ //Need upper block from myid-1 [ii-1][jj] (upper boundary)
 			if(ii == 0 && myid > 0){ //receive upper boundary
 				//printf("Recv jj=%i from %i", jj, myid-1);
-				MPI_Recv(&u[1*sizey + jj*by], by, MPI_DOUBLE, myid-1, 2, MPI_COMM_WORLD, &status);
+				//MPI_Recv(&u[jj*by], by, MPI_DOUBLE, myid-1, 2, MPI_COMM_WORLD, &status);
 			}
             for (int i=1+ii*bx; i<=min((ii+1)*bx, sizex-2); i++){
                 for (int j=1+jj*by; j<=min((jj+1)*by, sizey-2); j++) {
@@ -114,7 +114,7 @@ double relax_gauss (double *u, unsigned sizex, unsigned sizey)
 			}
 			if(myid != numprocs-1){ //If i'm not the last one, send block to the next slave
 				//printf("Send jj=%i to %i", jj, myid+1); 
-				MPI_Send(&u[(ii)*bx + jj*by], by, MPI_DOUBLE, myid+1, 2, MPI_COMM_WORLD);
+				//MPI_Send(&u[(ii)*bx + jj*by], by, MPI_DOUBLE, myid+1, 2, MPI_COMM_WORLD);
 			}
 		}
 	}

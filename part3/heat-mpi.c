@@ -238,19 +238,18 @@ int main( int argc, char *argv[] )
 		    residual = relax_redblack(u, np, np);
 		    break;
 	    case 2: // GAUSS
-			printf("Iter");
+			//printf("Iter");
 		    residual = relax_gauss(u, rows+2, np);
-			printf("Residual -> %f", residual);
-			
-			/*
+			//printf("Residual -> %f", residual);
 			//Share boundaries to adjacent procs, send/receive upper bound
+			
 			MPI_Send(&u[np], np, MPI_DOUBLE, myid-1, 0, MPI_COMM_WORLD);
 			MPI_Recv(&u[0], np, MPI_DOUBLE, myid-1, 0, MPI_COMM_WORLD, &status);
 			
 			if(myid != numprocs-1){ //intermediate block, send/receive also lower bound
 				MPI_Send(&u[rows*np], np, MPI_DOUBLE, myid+1, 0, MPI_COMM_WORLD);
 				MPI_Recv(&u[(rows+1)*np], np, MPI_DOUBLE, myid+1, 0, MPI_COMM_WORLD, &status);
-			}*/
+			}
 		    break;
 	    }
 
