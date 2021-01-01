@@ -248,10 +248,11 @@ int main( int argc, char *argv[] ) {
 		
 		//get result of reduction from device
 		cudaMemcpy(res, dev_res, Grid_Dim*Grid_Dim*sizeof(float), cudaMemcpyDeviceToHost);
-		int residual = 0;
+		
+		residual = 0;
 		//add residuals output for each block
 		for(int i = 0; i < Grid_Dim*Grid_Dim; i++){
-			//fprintf(stdout, "Res -> %f", res[i]);
+			fprintf(stdout, "Res -> %f\n", res[i]);
 			residual += res[i];
 		}
 		printf("residual -> %f", residual);
