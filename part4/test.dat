@@ -1,4 +1,4 @@
-25000    # iterations 
+25000    # iterations
 256      # resolution (should be a power of 2)
 2                     # number of heat sources
 0.0  0.0  1.0  2.5    # (x,y), size temperature 

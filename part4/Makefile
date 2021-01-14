@@ -1,17 +1,19 @@
-NVCC 	= /opt/cuda/4.1/bin/nvcc
-CUDAPATH = /opt/cuda/4.1
+NVCC 	= /usr/local/cuda-11.1/bin/nvcc
+CUDAPATH = /usr/local/cuda-11.1
 
-NVCCFLAGS = -I$(CUDAPATH)/include #--ptxas-options=-v 
+NVCCFLAGS = -I$(CUDAPATH)/include #-Wdeprecated-declarations #--ptxas-options=-v
 LFLAGS = -L$(CUDAPATH)/lib64 -lcuda -lcudart -lm
 
 ALL	= heatCUDA
-all: $(ALL)
+all: clean $(ALL) run
 
-kernels.o: kernels.cu 
+kernels.o: kernels.cu
 	$(NVCC) -c -g $(NVCCFLAGS) $+ $(LFLAGS) -o $@
 
-heatCUDA: heatCUDA.cu kernels.o
-	$(NVCC) -g -O2 $(NVCCFLAGS) $+ $(LFLAGS) -o $@
+heatCUDA: heatCUDA.cu #kernels.o
+	$(NVCC) -g $(NVCCFLAGS) $+ $(LFLAGS) -o $@
+
+run: ./heatCUDA $(ARGS)
 
 clean:
 	rm -fr $(ALL) *.o *.prv *.pcf *.row *.sym *.mpits set-0
