@@ -1,0 +1,37 @@
+Default -> 
+Iterations        : 25000
+Resolution        : 256
+Num. Heat sources : 2
+   1: (0.00, 0.00) 1.00 2.50 
+   2: (0.50, 1.00) 1.00 2.50 
+
+Execution on CPU (sequential)
+-----------------------------
+Time on CPU in ms.= 3063.044189 (11.464 GFlop => 3742.58 MFlop/s)
+Convergence to residual=0.000050: 15902 iterations
+
+Execution on GPU
+----------------
+
+Time on GPU in ms. = 1150.700928 (11.464 GFlop => 9962.35 MFlop/s)
+Convergence to residual=0.000050: 4251 iterations
+----------
+after COMMENTING residual on CPU computation
+----------
+
+Iterations        : 25000
+Resolution        : 256
+Num. Heat sources : 2
+   1: (0.00, 0.00) 1.00 2.50 
+   2: (0.50, 1.00) 1.00 2.50 
+
+Execution on CPU (sequential)
+-----------------------------
+Time on CPU in ms.= 3065.018799 (11.464 GFlop => 3740.17 MFlop/s)
+Convergence to residual=0.000050: 15902 iterations
+
+Execution on GPU
+----------------
+
+Time on GPU in ms. = 534.648071 (11.464 GFlop => 21441.56 MFlop/s)
+Convergence to residual=0.000050: 25000 iterations
