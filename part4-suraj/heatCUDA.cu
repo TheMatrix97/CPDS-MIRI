@@ -209,20 +209,17 @@ int main(int argc, char *argv[]) {
     cudaEventRecord(start, 0);
     cudaEventSynchronize(start);
 
-    float *dev_u, *dev_uhelp, *dev_residual_in, *dev_residual_out, *host_residual_in, *host_residual_out;
+    float *dev_u, *dev_uhelp, *dev_residual_in;
 
-    host_residual_in = (float *) malloc(sizeof(float) * np * np);
-    host_residual_out = (float *) malloc(sizeof(float) * np);
 
-    // TODO: Allocation on GPU for matrices u and uhelp
-    //...
+    //Allocation on GPU for matrices u and uhelp
+
     cudaMalloc(&dev_u, np * np * sizeof(float));
     cudaMalloc(&dev_uhelp, np * np * sizeof(float));
     cudaMalloc(&dev_residual_in, np * np * sizeof(float));
-    cudaMalloc(&dev_residual_out, np * np * sizeof(float));
 
-    // TODO: Copy initial values in u and uhelp from host to GPU
-    //...
+    // Copy initial values in u and uhelp from host to GPU
+  
     cudaMemcpy(dev_u, param.u, np * np * sizeof(float), cudaMemcpyHostToDevice);
     cudaMemcpy(dev_uhelp, param.uhelp, np * np * sizeof(float), cudaMemcpyHostToDevice);
 
@@ -232,8 +229,7 @@ int main(int argc, char *argv[]) {
         gpu_Heat<<<Grid, Block>>>(dev_u, dev_uhelp, dev_residual_in, np);
         cudaThreadSynchronize();                      // wait for all threads to complete
 
-        // TODO: residual is computed on host, we need to get from GPU values computed in u and uhelp
-        //...
+        //residual is computed on host, we need to get from GPU values computed in u and uhelp
 
         residual = GPUReductionOrg<32>(dev_residual_in,  np * np );
         float *tmp = dev_u;
@@ -241,7 +237,7 @@ int main(int argc, char *argv[]) {
         dev_uhelp = tmp;
 
         iter++;
-//        printf("Residual %f\n", residual);
+
         // solution good enough ?
         if (residual < 0.00005) break;
 
@@ -249,16 +245,15 @@ int main(int argc, char *argv[]) {
         if (iter >= param.maxiter) break;
     }
 
-    // TODO: get result matrix from GPU
-    //...
+    // get result matrix from GPU
     cudaMemcpy(param.u, dev_u, np * np * sizeof(float), cudaMemcpyDeviceToHost);
     cudaMemcpy(param.uhelp, dev_uhelp, np * np * sizeof(float), cudaMemcpyDeviceToHost);
     cudaThreadSynchronize();
 
-    // TODO: free memory used in GPU
-    //...
+    //free memory used in GPU
     cudaFree(dev_u);
     cudaFree(dev_uhelp);
+	cudaFree(dev_residual_in);
 
     cudaEventRecord(stop, 0);     // instrument code to measue end time
     cudaEventSynchronize(stop);

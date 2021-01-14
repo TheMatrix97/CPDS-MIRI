@@ -37,7 +37,6 @@ __global__ void reduce1(T *g_idata, T *g_odata, int n) {
     unsigned int tid = threadIdx.x;
     unsigned int i = blockIdx.x * blockDim.x + threadIdx.x;
     sdata[tid] = 0;
-
     if (i < n) {
         sdata[tid] = g_idata[i];
     }
@@ -57,12 +56,11 @@ __global__ void reduce2(T *g_idata, T *g_odata, int n) {
     extern __shared__ T sdata[];
     unsigned int tid = threadIdx.x;
     unsigned int i = blockIdx.x * blockDim.x + threadIdx.x;
-    sdata[tid] = 0;
-
+	sdata[tid] = 0;
     if (i < n) {
         sdata[tid] = g_idata[i];
     }
-
+	
     __syncthreads();
     for (unsigned int s = 1; s < blockDim.x; s *= 2) {
         int index = 2 * s * tid;
@@ -126,6 +124,7 @@ __global__ void reduce5(T *g_idata, T *g_odata, int n) {
     if (i < n) {
         sdata[tid] = g_idata[i] + g_idata[i + blockDim.x];
     }
+	
     __syncthreads();
     for (unsigned int s = blockDim.x / 2; s > 32; s >>= 1) {
         if (tid < s) {
@@ -148,6 +147,7 @@ __global__ void reduce6(T *g_idata, T *g_odata, int n) {
     if (i < n) {
         sdata[tid] = g_idata[i] + g_idata[i + blockDim.x];
     }
+	
     __syncthreads();
     if (blockSize >= 512 && tid < 256) { sdata[tid] += sdata[tid + 256]; }
     __syncthreads();
@@ -211,15 +211,13 @@ T GPUReductionOrg(T *dA, size_t N) {
 
     do {
         blocksPerGrid = std::ceil((1. * n) / blockSize);
-//        finalReduce<blockSize><<<blocksPerGrid, blockSize, 32>>>(from, tmp, n);
-        reduce1<blockSize><<<blocksPerGrid, blockSize, 32>>>(from, tmp, n);
+        reduce1<blockSize><<<blocksPerGrid, blockSize, blockSize*sizeof(T)>>>(from, tmp, n);
         from = tmp;
         n = blocksPerGrid;
     } while (n > blockSize);
 
     if (n > 1)
-//        finalReduce<blockSize><<<1, blockSize, 32>>>(tmp, tmp, n);
-        reduce1<blockSize><<<1, blockSize, 32>>>(tmp, tmp, n);
+        reduce1<blockSize><<<1, blockSize, blockSize*sizeof(T)>>>(tmp, tmp, n);
 
     cudaDeviceSynchronize();
 
